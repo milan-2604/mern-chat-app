@@ -30,18 +30,22 @@ const SignupPage = () => {
   };
 
   return (
-    <div className='min-h-screen bg-[#fafafa] flex flex-col justify-center items-center p-4 antialiased selection:bg-neutral-200'>
+    /* 1. Changed bg-[#fafafa] to bg-base-200 */
+    <div className='min-h-screen bg-base-200 flex flex-col justify-center items-center p-4 antialiased'>
       
       {/* Outer elegant container */}
-      <div className='w-full max-w-[440px] bg-white border border-neutral-200/80 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.01)] p-8 sm:p-10 transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.03)]'>
+      {/* 2. Changed bg-white to bg-base-100, and border-neutral-200 to border-base-300 */}
+      <div className='w-full max-w-[440px] bg-base-100 border border-base-300 rounded-2xl shadow-md p-8 sm:p-10 transition-all duration-300'>
         
         {/* Logo & Header */}
         <div className='flex flex-col items-center mb-8 text-center'>
-          <div className='w-10 h-10 rounded-xl bg-neutral-900 flex items-center justify-center text-white shadow-sm mb-4'>
+          {/* 3. Changed bg-neutral-900 to bg-primary (or keep neutral if you want an intentional dark accent) */}
+          <div className='w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-content shadow-sm mb-4'>
             <MessageSquare className="w-5 h-5 stroke-[1.75]" />
           </div>
-          <h1 className='text-xl font-semibold tracking-tight text-neutral-950'>Create your account</h1>
-          <p className='text-sm text-neutral-500 mt-1.5'>Get started with your free profile workspace</p>
+          {/* 4. Changed text-neutral-950 to text-base-content */}
+          <h1 className='text-xl font-semibold tracking-tight text-base-content'>Create your account</h1>
+          <p className='text-sm opacity-70 mt-1.5'>Get started with your free profile workspace</p>
         </div>
 
         {/* Form Container */}
@@ -49,16 +53,17 @@ const SignupPage = () => {
           
           {/* Full Name Input Box */}
           <div className='space-y-1.5'>
-            <label className='text-xs font-medium text-neutral-600 tracking-wide uppercase'>
+            <label className='text-xs font-medium opacity-80 tracking-wide uppercase'>
               Full Name
             </label>
             <div className='relative group'>
-              <div className='absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400 group-focus-within:text-neutral-600 transition-colors'>
+              <div className='absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none opacity-50 group-focus-within:opacity-100 transition-opacity'>
                 <User className="w-4 h-4 stroke-[1.75]" />
               </div>
+              {/* 5. Replaced strict neutral input styling with a semantic DaisyUI style approach or cleaner base styling */}
               <input
                 type="text"
-                className='w-full pl-10 pr-4 py-2.5 bg-neutral-50/50 border border-neutral-200/80 rounded-lg text-sm text-neutral-900 transition-all duration-200 placeholder:text-neutral-400 focus:outline-none focus:bg-white focus:border-neutral-900 focus:ring-4 focus:ring-neutral-100'
+                className='w-full pl-10 pr-4 py-2.5 bg-base-200/50 border border-base-300 rounded-lg text-sm text-base-content transition-all duration-200 placeholder:opacity-50 focus:outline-none focus:bg-base-100 focus:border-primary focus:ring-4 focus:ring-primary/10'
                 placeholder='John Doe'
                 value={formData.fullName}
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
@@ -68,16 +73,16 @@ const SignupPage = () => {
 
           {/* Email Input Box */}
           <div className='space-y-1.5'>
-            <label className='text-xs font-medium text-neutral-600 tracking-wide uppercase'>
+            <label className='text-xs font-medium opacity-80 tracking-wide uppercase'>
               Email Address
             </label>
             <div className='relative group'>
-              <div className='absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400 group-focus-within:text-neutral-600 transition-colors'>
+              <div className='absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none opacity-50 group-focus-within:opacity-100 transition-opacity'>
                 <Mail className="w-4 h-4 stroke-[1.75]" />
               </div>
               <input
                 type="email"
-                className='w-full pl-10 pr-4 py-2.5 bg-neutral-50/50 border border-neutral-200/80 rounded-lg text-sm text-neutral-900 transition-all duration-200 placeholder:text-neutral-400 focus:outline-none focus:bg-white focus:border-neutral-900 focus:ring-4 focus:ring-neutral-100'
+                className='w-full pl-10 pr-4 py-2.5 bg-base-200/50 border border-base-300 rounded-lg text-sm text-base-content transition-all duration-200 placeholder:opacity-50 focus:outline-none focus:bg-base-100 focus:border-primary focus:ring-4 focus:ring-primary/10'
                 placeholder='you@example.com'
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -87,16 +92,16 @@ const SignupPage = () => {
 
           {/* Password Input Box */}
           <div className='space-y-1.5'>
-            <label className='text-xs font-medium text-neutral-600 tracking-wide uppercase'>
+            <label className='text-xs font-medium opacity-80 tracking-wide uppercase'>
               Password
             </label>
             <div className='relative group'>
-              <div className='absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400 group-focus-within:text-neutral-600 transition-colors'>
+              <div className='absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none opacity-50 group-focus-within:opacity-100 transition-opacity'>
                 <Lock className="w-4 h-4 stroke-[1.75]" />
               </div>
               <input
                 type={showPassword ? "text" : "password"}
-                className='w-full pl-10 pr-11 py-2.5 bg-neutral-50/50 border border-neutral-200/80 rounded-lg text-sm text-neutral-900 transition-all duration-200 placeholder:text-neutral-400 focus:outline-none focus:bg-white focus:border-neutral-900 focus:ring-4 focus:ring-neutral-100'
+                className='w-full pl-10 pr-11 py-2.5 bg-base-200/50 border border-base-300 rounded-lg text-sm text-base-content transition-all duration-200 placeholder:opacity-50 focus:outline-none focus:bg-base-100 focus:border-primary focus:ring-4 focus:ring-primary/10'
                 placeholder='••••••••'
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -104,7 +109,7 @@ const SignupPage = () => {
               <button 
                 type='button' 
                 onClick={() => setShowPassword(!showPassword)}
-                className='absolute inset-y-0 right-0 pr-3 flex items-center text-neutral-400 hover:text-neutral-600 transition-colors'
+                className='absolute inset-y-0 right-0 pr-3 flex items-center opacity-50 hover:opacity-100 transition-opacity'
               >
                 {showPassword ? <EyeOff className="w-4 h-4 stroke-[1.75]" /> : <Eye className="w-4 h-4 stroke-[1.75]" />}
               </button>
@@ -112,30 +117,31 @@ const SignupPage = () => {
           </div>
 
           {/* Clean Action Button */}
+          {/* 6. Transformed custom neutral button into a DaisyUI styled interactive element */}
           <button 
             type='submit' 
             disabled={isSigningUp}
-            className='w-full bg-neutral-900 hover:bg-neutral-800 text-white font-medium text-sm py-2.5 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm group mt-4'
+            className='btn btn-primary w-full normal-case font-medium text-sm rounded-lg flex items-center justify-center gap-2 mt-4'
           >
             {isSigningUp ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin text-neutral-400" />
+                <Loader2 className="w-4 h-4 animate-spin" />
                 <span>Creating workspace...</span>
               </>
             ) : (
               <>
                 <span>Create Account</span>
-                <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
               </>
             )}
           </button>
         </form>
 
         {/* Bottom Navigation Link */}
-        <div className='text-center text-xs text-neutral-500 mt-6 border-t border-neutral-100 pt-5'>
+        <div className='text-center text-xs opacity-70 mt-6 border-t border-base-300 pt-5'>
           <p>
             Already have an account?{' '}
-            <Link to='/login' className='font-medium text-neutral-950 hover:underline underline-offset-4 transition-all'>
+            <Link to='/login' className='font-medium text-primary hover:underline underline-offset-4 transition-all'>
               Sign in
             </Link>
           </p>
@@ -143,8 +149,7 @@ const SignupPage = () => {
         
       </div>
 
-      {/* Subtle bottom modern accent */}
-      <span className="text-[11px] text-neutral-400 tracking-wide mt-6 font-mono">Protected by industry secure encryption standard</span>
+      <span className="text-[11px] opacity-40 tracking-wide mt-6 font-mono">Protected by industry secure encryption standard</span>
     </div>
   );
 };
