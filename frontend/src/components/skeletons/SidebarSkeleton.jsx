@@ -1,0 +1,40 @@
+import { Users } from "lucide-react";
+
+const SidebarSkeleton = () => {
+  // Create 8 skeleton items
+  const skeletonContacts = Array(8).fill(null);
+
+  return (
+    <aside className="h-full w-full flex flex-col transition-all duration-200">
+      {/* Header Container */}
+      <div className="border-b border-base-300 w-full p-5">
+        <div className="flex items-center gap-2">
+          <Users className="w-6 h-6" />
+          {/* Fixed: Matches real Sidebar header visibility on mobile */}
+          <span className="font-medium">Contacts</span>
+        </div>
+      </div>
+
+      {/* Skeleton Contacts Loading Loop */}
+      <div className="overflow-y-auto w-full py-3">
+        {skeletonContacts.map((_, idx) => (
+          <div key={idx} className="w-full p-3 flex items-center gap-3">
+            {/* Avatar skeleton placeholder wrapper */}
+            <div className="relative shrink-0">
+              <div className="skeleton size-12 rounded-full" />
+            </div>
+
+            {/* User info skeleton text placeholder */}
+            {/* Fixed: Removed 'hidden lg:block' so text placeholders match real UI across all views */}
+            <div className="text-left min-w-0 flex-1">
+              <div className="skeleton h-4 w-32 mb-2" />
+              <div className="skeleton h-3 w-16" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </aside>
+  );
+};
+
+export default SidebarSkeleton;
