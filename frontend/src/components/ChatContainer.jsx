@@ -8,15 +8,15 @@ import { useAuthStore } from '../store/useAuthStore';
 import { formatMessageTime } from '../lib/utils';
 
 const ChatContainer = () => {
-  const { messages, getMessages, isMessagesLoading, selectedUser } = useChatStore();
+  const { messages, getMessages, isMessagesLoading, selectedUser, subscribeToMessages, unsubscribeToMessages } = useChatStore();
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null); // Reference for anchor scroll
 
   useEffect(() => {
-    if (selectedUser?._id) {
       getMessages(selectedUser._id);
-    }
-  }, [selectedUser?._id, getMessages]);
+      subscribeToMessages();
+      return ()=> unsubscribeToMessages();
+  }, [selectedUser?._id, getMessages, subscribeToMessages, unsubscribeToMessages]);
 
   // Fixed: Automatically scrolls down smoothly when a new message arrives
   useEffect(() => {
