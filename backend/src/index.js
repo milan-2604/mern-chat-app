@@ -28,12 +28,12 @@ app.use('/api/messages', messageRoutes);
 
 // Serve Frontend Static Files in Production
 if (process.env.NODE_ENV === "production") {
-  // Since index.js is inside backend/src, we need to go up two levels to find frontend/dist
-  const frontendBuildPath = path.join(__dirname, "../../frontend/dist");
+ const frontendBuildPath = path.join(__dirname, "../../frontend/dist");
   
   app.use(express.static(frontendBuildPath));
 
-  app.get("*", (req, res) => {
+  // CHANGED FROM "*" TO "/{*splat}" FOR EXPRESS v5 COMPATIBILITY
+  app.get("/{*splat}", (req, res) => {
     res.sendFile(path.join(frontendBuildPath, "index.html"));
   });
 } else {
