@@ -2,6 +2,8 @@
 
 A full-stack real-time chat application built with the MERN stack (MongoDB, Express, React, Node.js) and Socket.io for real-time messaging.
 
+🔗 **[Live Demo](https://mern-chat-app-xfvy.onrender.com)**
+
 ## Features
 
 - 🔐 **User Authentication** - Secure JWT-based authentication with bcryptjs password hashing
