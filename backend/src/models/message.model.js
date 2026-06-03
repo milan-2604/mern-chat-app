@@ -18,6 +18,11 @@ const messageSchema = new mongoose.Schema({
     image: {
         type: String,
     },
+    status: {
+        type: String,
+        enum: ["sent", "seen"],
+        default: "sent", // Automatically "sent" upon creation
+    },
     isDeleted: {
         type: Boolean,
         default: false,

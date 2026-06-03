@@ -5,7 +5,7 @@ import MessageSkeleton from './skeletons/MessageSkeleton';
 import MessageInput from './MessageInput';
 import { useAuthStore } from '../store/useAuthStore';
 import { formatMessageTime } from '../lib/utils';
-import { Trash2, Pencil, X, Check } from 'lucide-react'; 
+import { Trash2, Pencil, X, Check, CheckCheck } from 'lucide-react'; // Added CheckCheck for the read status
 
 const ChatContainer = () => {
   // 🌟 Cleaned up: Removed subscribeToMessages and unsubscribeToMessages to rely completely on App.jsx
@@ -90,6 +90,17 @@ const ChatContainer = () => {
               <time className='text-xs opacity-50 ml-1 whitespace-nowrap'>
                 {formatMessageTime(message.createdAt)}
               </time>
+
+              {/* NEW: Message Status Indicators for Sent vs Seen */}
+              {message.senderId === authUser._id && !message.isDeleted && (
+                <span className="flex items-center select-none ml-0.5">
+                  {message.status === "seen" ? (
+                    <CheckCheck size={14} className="text-primary" title="Seen" />
+                  ) : (
+                    <Check size={14} className="text-zinc-400 opacity-70" title="Sent" />
+                  )}
+                </span>
+              )}
 
               {message.isEdited && !message.isDeleted && (
                 <span className="text-[10px] opacity-40 italic select-none whitespace-nowrap">(edited)</span>

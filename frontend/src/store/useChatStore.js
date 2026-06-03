@@ -21,9 +21,17 @@ export const useChatStore = create((set, get) => ({
             const res = await axiosInstance.get('/messages/users');
             set({ users: res.data });
 
-            // 🔥 Pre-seed timestamps if backend populates lastMessage metadata in the user array
+            // 🔥 Extract and seed both unreadCounts and lastMessageTimestamps from database payload
+            const initialUnreadCounts = {};
             const initialTimestamps = {};
+
             res.data.forEach((user) => {
+                // Seed unread counts mapping directly from backend calculations
+                if (user.unreadCount !== undefined) {
+                    initialUnreadCounts[user._id] = user.unreadCount;
+                }
+
+                // Pre-seed timestamps if backend populates lastMessage metadata in the user array
                 if (user.lastMessage?.createdAt) {
                     initialTimestamps[user._id] = new Date(user.lastMessage.createdAt).getTime();
                 } else if (user.updatedAt) {
@@ -32,11 +40,11 @@ export const useChatStore = create((set, get) => ({
                 }
             });
 
-            if (Object.keys(initialTimestamps).length > 0) {
-                set((state) => ({
-                    lastMessageTimestamps: { ...state.lastMessageTimestamps, ...initialTimestamps }
-                }));
-            }
+            set((state) => ({
+                unreadCounts: { ...state.unreadCounts, ...initialUnreadCounts },
+                lastMessageTimestamps: { ...state.lastMessageTimestamps, ...initialTimestamps }
+            }));
+            
         } catch (error) {
             toast.error(error.response?.data?.message || "Failed to load users");
         } finally {
@@ -132,13 +140,17 @@ export const useChatStore = create((set, get) => ({
         if (!socket) return;
 
         socket.off("newMessage");
+        socket.off("messagesSeen"); 
+        socket.off("messageDeleted");
+        socket.off("messageEdited");
 
         socket.on("newMessage", (newMessage) => {
             const currentSelectedUser = get().selectedUser;
             const msgTime = new Date(newMessage.createdAt).getTime();
+            const myId = useAuthStore.getState().authUser?._id; // 🔥 Fixed: changed .user to .authUser
             
             // 🔥 Dynamically locate who we need to associate this message with (Sender vs Receiver fallback)
-            const chatPartnerId = newMessage.senderId === useAuthStore.getState().user?._id 
+            const chatPartnerId = newMessage.senderId === myId
                 ? newMessage.receiverId 
                 : newMessage.senderId;
 
@@ -152,8 +164,14 @@ export const useChatStore = create((set, get) => ({
 
             // If actively chatting with the sender, just append it locally and skip notifications
             if (currentSelectedUser && newMessage.senderId === currentSelectedUser._id) {
+                // Since I am looking at this conversation right now, tell the server I am reading it
+                socket.emit("markAsSeen", { senderId: newMessage.senderId, receiverId: myId });
+
+                // Set local layout status directly to seen since it's actively focused
+                const renderedMessage = { ...newMessage, status: "seen" };
+
                 set({
-                    messages: [...get().messages, newMessage],
+                    messages: [...get().messages, renderedMessage],
                 });
                 return;
             }
@@ -184,6 +202,21 @@ export const useChatStore = create((set, get) => ({
                 }), 
                 { position: 'top-right', duration: 4000 }
             );
+        });
+
+        // 🔥 FIXED: Live blue tick updates when both users are in the same chat room
+        socket.on("messagesSeen", ({ senderId, receiverId }) => {
+            const currentSelectedUser = get().selectedUser;
+            const myId = useAuthStore.getState().authUser?._id; // 🔥 Fixed: changed .user to .authUser
+
+            // If I am the person who sent the message, and the receiver just read it live
+            if (currentSelectedUser && currentSelectedUser._id === receiverId) {
+                set((state) => ({
+                    messages: state.messages.map((msg) =>
+                        msg.status === "sent" ? { ...msg, status: "seen" } : msg
+                    ),
+                }));
+            }
         });
 
         // Listen for real-time deletions from the other user
@@ -217,6 +250,7 @@ export const useChatStore = create((set, get) => ({
         const socket = useAuthStore.getState().socket;
         if (!socket) return;
         socket.off("newMessage");
+        socket.off("messagesSeen");
         socket.off("messageDeleted");
         socket.off("messageEdited");
     },
@@ -228,6 +262,24 @@ export const useChatStore = create((set, get) => ({
             set((state) => ({
                 unreadCounts: { ...state.unreadCounts, [selectedUser._id]: 0 }
             }));
+
+            // 🔥 Fixed: Changed .user to .authUser to point to correct backend properties
+            const socket = useAuthStore.getState().socket;
+            const myId = useAuthStore.getState().authUser?._id;
+            if (socket && myId) {
+                socket.emit("markAsSeen", { senderId: selectedUser._id, receiverId: myId });
+            }
         }
+    },
+
+    // Clears memory cleanly on session logouts to stop cross-account profile bleeding
+    resetChatState: () => {
+        set({
+            messages: [],
+            users: [],
+            selectedUser: null,
+            unreadCounts: {},
+            lastMessageTimestamps: {},
+        });
     },
 }));
