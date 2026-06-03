@@ -1,6 +1,6 @@
 # MERN Chat App
 
-A full-stack real-time chat application built with the MERN stack (MongoDB, Express, React, Node.js) and Socket.io for real-time messaging with advanced features like message editing, deletion, and unread message notifications.
+A full-stack real-time chat application built with the MERN stack (MongoDB, Express, React, Node.js) and Socket.io for real-time messaging with advanced features like message editing, deletion, read receipts (blue ticks), and unread message notifications.
 
 🔗 **[Live Demo](https://mern-chat-app-xfvy.onrender.com)**
 
@@ -13,7 +13,8 @@ A full-stack real-time chat application built with the MERN stack (MongoDB, Expr
 - 🖼️ **Image Upload** - Cloudinary integration for user avatars and media in messages
 - 📝 **Message Edit** - Edit sent messages in real-time (marks as edited)
 - 🗑️ **Message Delete** - Delete messages with soft-delete (preserves message history structure)
-- 📬 **Unread Notifications** - Unread message counter with toast notifications
+- ✅ **Read Receipts (Blue Ticks)** - Real-time message status tracking (sent → seen)
+- 📬 **Unread Notifications** - Unread message counter with intelligent badge tracking from database
 - 👁️ **Online Status** - See who is online in real-time with visual indicators
 - 🔔 **Smart Notifications** - Custom notification toasts with sender profile when new messages arrive
 
@@ -144,11 +145,11 @@ mern-chat-app/
 │   │   │   └── message.route.js            # Message endpoints
 │   │   ├── models/
 │   │   │   ├── user.model.js               # User schema
-│   │   │   └── message.model.js            # Message schema (with edit/delete flags)
+│   │   │   └── message.model.js            # Message schema (with status, edit/delete flags)
 │   │   ├── middleware/
 │   │   │   └── auth.middleware.js          # JWT verification
 │   │   ├── lib/
-│   │   │   ├── socket.js                   # Socket.io configuration
+│   │   │   ├── socket.js                   # Socket.io configuration with markAsSeen handler
 │   │   │   ├── cloudinary.js               # Image upload setup
 │   │   │   ├── db.js                       # MongoDB connection
 │   │   │   └── utils.js                    # Helper functions
@@ -158,7 +159,7 @@ mern-chat-app/
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── ChatContainer.jsx           # Main chat display
+│   │   │   ├── ChatContainer.jsx           # Main chat display with read receipt indicators
 │   │   │   ├── ChatHeader.jsx              # Chat header with online status
 │   │   │   ├── MessageInput.jsx            # Message composer with image upload
 │   │   │   ├── Navbar.jsx                  # Navigation bar
@@ -174,7 +175,7 @@ mern-chat-app/
 │   │   │   └── SettingsPage.jsx            # Theme & settings
 │   │   ├── store/
 │   │   │   ├── useAuthStore.js             # Auth state + socket connection
-│   │   │   ├── useChatStore.js             # Chat state with unread tracking
+│   │   │   ├── useChatStore.js             # Chat state with unread tracking & read receipts
 │   │   │   └── useThemeStore.js            # Theme preference
 │   │   ├── lib/
 │   │   │   └── axios.js                    # Axios instance configuration
@@ -243,17 +244,30 @@ Response: Current user object if authenticated
 
 ### Messages Routes (`/api/messages`)
 
-#### Get All Users for Sidebar (Protected)
+#### Get All Users for Sidebar with Unread Counts (Protected) ⭐ ENHANCED
 ```bash
 GET /users
 ```
-Response: Array of all users (excluding current user)
+Response: Array of all users with calculated unread counts from database
+```json
+[
+  {
+    "_id": "user_id",
+    "fullName": "John Doe",
+    "email": "john@example.com",
+    "profilePic": "...",
+    "unreadCount": 3,
+    "createdAt": "2026-06-03T...",
+    "updatedAt": "2026-06-03T..."
+  }
+]
+```
 
-#### Get Messages with User (Protected)
+#### Get Messages with User (Protected) ⭐ ENHANCED
 ```bash
 GET /:userId
 ```
-Response: Array of messages between current user and specified user
+Response: Array of messages between current user and specified user. Automatically marks received messages as "seen" and emits real-time `messagesSeen` event.
 
 #### Send Message (Protected)
 ```bash
@@ -265,15 +279,15 @@ Content-Type: application/json
   "image": "data:image/jpeg;base64,..." (optional)
 }
 ```
-Response: New message object
+Response: New message object with `status: "sent"`
 
-#### Delete Message (Protected) ⭐ NEW
+#### Delete Message (Protected) ⭐
 ```bash
 DELETE /delete/:messageId
 ```
 Response: Updated message object (marked as deleted)
 
-#### Edit Message (Protected) ⭐ NEW
+#### Edit Message (Protected) ⭐
 ```bash
 PUT /edit/:messageId
 Content-Type: application/json
@@ -288,12 +302,16 @@ Response: Updated message object (marked as edited)
 
 ### Client to Server
 - `connection` - User connects with userId via query parameter
+- `markAsSeen` - Client emits when entering a chat or message becomes visible ⭐ NEW
+  - Payload: `{ senderId, receiverId }`
 
 ### Server to Client
 - `getOnlineUsers` - List of online user IDs
 - `newMessage` - New message received
-- `messageDeleted` - Message was deleted by sender ⭐ NEW
-- `messageEdited` - Message was edited by sender ⭐ NEW
+- `messagesSeen` - Messages marked as seen (blue tick update) ⭐ NEW
+  - Payload: `{ senderId, receiverId }`
+- `messageDeleted` - Message was deleted by sender
+- `messageEdited` - Message was edited by sender
 
 ## 🔑 Environment Variables
 
@@ -351,18 +369,28 @@ npm run lint       # Run ESLint
 - Message history stored in MongoDB
 - Auto-scroll to latest message
 
-### Message Management ⭐ NEW
+### Message Status & Read Receipts ⭐ NEW
+- **Message Status Tracking**: Each message has a `status` field (`sent` or `seen`)
+- **Automatic Status Updates**: Messages are automatically marked as "seen" when:
+  - User opens a conversation (`getMessages` endpoint)
+  - User actively views messages in the chat room
+- **Real-time Blue Ticks**: Live updates to message status across both sender and receiver
+- **Socket Handler**: `markAsSeen` event broadcasts status changes instantly
+- **Visual Indicators**: "Sent" vs "Seen" icons/badges displayed in UI
+
+### Message Management ⭐
 - **Edit Messages**: Update message content after sending (marked with "edited" flag)
 - **Delete Messages**: Remove messages with soft-delete (preserves message history integrity)
 - **Real-time Sync**: All edits and deletions are instantly synchronized across connected clients
 - **Authorization Checks**: Only message sender can edit/delete their own messages
 
-### Unread Message Tracking ⭐ NEW
-- Unread message counter per user
-- Badge display in sidebar
-- Counter resets when opening conversation
-- Toast notifications for background messages
-- Custom notification component with sender profile
+### Unread Message Tracking ⭐ ENHANCED
+- **Database-Backed Unread Counts**: Server calculates unread count using message status
+- **Query-Based Counting**: Counts messages with `status: "sent"` from other users
+- **Automatic Reset**: Unread counter resets when user opens conversation
+- **Sidebar Badge Display**: Shows unread count next to each user
+- **Toast Notifications**: Background notifications for messages from inactive chats
+- **Smart Seeding**: Frontend initializes unread counts from `/messages/users` response
 
 ### Image Upload
 - Profile picture upload via Cloudinary
@@ -388,6 +416,7 @@ npm run lint       # Run ESLint
 - **JWT Authentication**: Secure token-based authentication
 - **HTTP-Only Cookies**: JWT stored in secure, non-accessible cookies
 - **Authorization Checks**: Backend validates user ownership before allowing edits/deletions
+- **Message Status Validation**: Only receiver can trigger "seen" status updates
 - **CORS Protection**: Configured CORS for specific origins
 - **Input Validation**: Server-side validation for all inputs
 - **Error Handling**: Detailed error messages without exposing sensitive data
@@ -443,6 +472,12 @@ netstat -ano | findstr :5001
 - Ensure frontend `VITE_API_URL` matches backend URL
 - Check browser console for connection errors
 
+### Read Receipts Not Working
+- Ensure Socket.io connection is active in browser DevTools
+- Check that `markAsSeen` event is being emitted from frontend
+- Verify backend Socket.io event listeners are properly configured
+- Check MongoDB for message status field updates
+
 ### Cloudinary Upload Fails
 - Verify API credentials in `.env`
 - Check image format and size (limit: 5MB)
@@ -455,35 +490,58 @@ netstat -ano | findstr :5001
 - Verify backend is listening to socket events
 - Clear browser cache and reconnect
 
+### Unread Counts Not Updating
+- Verify backend is calculating unread counts in `getUsersForSidebar`
+- Check that message `status` field is set to "sent" for new messages
+- Ensure unread counter resets when opening conversation
+- Check for database query issues in server logs
+
 ### CORS Errors
 - Update CORS origin in `backend/src/index.js` to match your frontend URL
-- In production, ensure environment variable points to correct frontend
+- Update Socket.io CORS in `backend/src/lib/socket.js`
+- In production, ensure environment variables point to correct frontend
 
 ## 📚 Project Highlights
 
-### Advanced Message Features
+### Advanced Message Management
 - Soft-delete mechanism preserves message history
 - Edit tracking with timestamps
 - Real-time synchronization across all connected clients
 - Unread message notifications with toast alerts
+- Database-backed read receipts with blue tick indicators
+
+### Real-time Message Status System
+- Dual-layer status tracking (frontend + database)
+- Automatic status updates on message view
+- Socket-driven live updates for instant feedback
+- Preserved message integrity with soft-delete
+
+### Intelligent Unread Tracking
+- Database queries for accurate unread counts
+- Client-side state management for UI updates
+- Automatic reset on conversation open
+- Initial seeding from API response
 
 ### State Management with Zustand
 - Lightweight global state for auth, chat, and theme
 - Socket integration within store
-- Efficient re-renders
+- Efficient re-renders with selective updates
 - DevTools support
+- Session cleanup on logout (`resetChatState`)
 
 ### Modern React Patterns
 - Functional components with hooks
 - Context-like state management with Zustand
 - React Router v7 for navigation
 - Error boundaries and error handling
+- Optimized socket event subscriptions
 
 ### Production Ready
 - Express v5 compatibility
 - ES Modules support in backend
 - Static file serving in production
 - Environment-based configuration
+- Comprehensive error handling
 
 ## 🤝 Contributing
 
@@ -531,4 +589,4 @@ If you encounter any issues:
 
 **Happy Chatting!** 💬✨
 
-Last updated: June 3, 2026
+Last updated: June 3, 2026 - Added Read Receipts (Blue Ticks) & Database-Backed Unread Counts
