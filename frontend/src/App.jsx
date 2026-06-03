@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react'
 import Navbar from './components/Navbar'
 import { Routes, Route } from 'react-router-dom'
@@ -8,25 +9,40 @@ import SettingsPage from './pages/SettingsPage'
 import ProfilePage from './pages/ProfilePage'
 import { useAuthStore } from './store/useAuthStore'
 import { useThemeStore } from './store/useThemeStore'
-import {Loader} from 'lucide-react'
+import { useChatStore } from './store/useChatStore' // 1. Imported the chat store
+import { Loader } from 'lucide-react'
 import { Navigate } from 'react-router-dom'
-import {Toaster} from 'react-hot-toast'
+import { Toaster } from 'react-hot-toast'
 
 const App = () => {
-  const {authUser, checkAuth,isCheckingAuth,onlineUsers} = useAuthStore();
-  const {theme}=useThemeStore();
-  console.log({onlineUsers});
-  useEffect(()=>{
+  const { authUser, checkAuth, isCheckingAuth, onlineUsers } = useAuthStore();
+  const { theme } = useThemeStore();
+  
+  // 2. Destructure the global message subscription actions
+  const { subscribeToMessages, unsubscribeToMessages } = useChatStore();
+
+  useEffect(() => {
     checkAuth();  
-  },[checkAuth]);
-  console.log({authUser});
-  if(isCheckingAuth && !authUser){
+  }, [checkAuth]);
+
+  // 3. Global Notification Listener Sync Lifecycle
+  useEffect(() => {
+    if (authUser) {
+      subscribeToMessages();
+      
+      // Clean up the global stream handlers immediately if the component unmounts or session drops
+      return () => unsubscribeToMessages();
+    }
+  }, [authUser, subscribeToMessages, unsubscribeToMessages]);
+
+  if (isCheckingAuth && !authUser) {
     return (
       <div className='flex items-center justify-center h-screen'>
         <Loader className='size-10 animate-spin' />
       </div>
     )
   }
+
   return (
     <div data-theme={theme}>
       <Navbar />
@@ -43,4 +59,4 @@ const App = () => {
   )
 }
 
-export default App
+export default App;

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { useChatStore } from '../store/useChatStore';
 import ChatHeader from './ChatHeader';
@@ -6,11 +5,11 @@ import MessageSkeleton from './skeletons/MessageSkeleton';
 import MessageInput from './MessageInput';
 import { useAuthStore } from '../store/useAuthStore';
 import { formatMessageTime } from '../lib/utils';
-import { Trash2, Pencil, X, Check } from 'lucide-react'; // Added icons for editing
+import { Trash2, Pencil, X, Check } from 'lucide-react'; 
 
 const ChatContainer = () => {
-  // Destructured editMessage action from store
-  const { messages, getMessages, isMessagesLoading, selectedUser, subscribeToMessages, unsubscribeToMessages, deleteMessage, editMessage } = useChatStore();
+  // 🌟 Cleaned up: Removed subscribeToMessages and unsubscribeToMessages to rely completely on App.jsx
+  const { messages, getMessages, isMessagesLoading, selectedUser, deleteMessage, editMessage } = useChatStore();
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
   
@@ -18,21 +17,19 @@ const ChatContainer = () => {
   
   // State management for interactions
   const [messageToDelete, setMessageToDelete] = useState(null); 
-  const [selectedMobileMessage, setSelectedMobileMessage] = useState(null); // Tracks long-pressed message on mobile
-  const [editingMessageId, setEditingMessageId] = useState(null); // Tracks which message is in edit-mode
-  const [editText, setEditText] = useState(""); // Holds temporary edit text inputs
+  const [selectedMobileMessage, setSelectedMobileMessage] = useState(null); 
+  const [editingMessageId, setEditingMessageId] = useState(null); 
+  const [editText, setEditText] = useState(""); 
 
   useEffect(() => {
       getMessages(selectedUser._id);
-      subscribeToMessages();
-      return ()=> unsubscribeToMessages();
-  }, [selectedUser?._id, getMessages, subscribeToMessages, unsubscribeToMessages]);
+  }, [selectedUser?._id, getMessages]);
 
   useEffect(() => {
     if (messageEndRef.current && messages) {
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages, editingMessageId]); // Re-scrolls cleanly if input changes size
+  }, [messages, editingMessageId]); 
 
   // --- Mobile Long Press Handlers ---
   const handleTouchStart = (message) => {
@@ -94,15 +91,12 @@ const ChatContainer = () => {
                 {formatMessageTime(message.createdAt)}
               </time>
 
-              {/* Conditional (edited) tag tracking indicator */}
               {message.isEdited && !message.isDeleted && (
                 <span className="text-[10px] opacity-40 italic select-none whitespace-nowrap">(edited)</span>
               )}
               
-              {/* Desktop Management Toolbar */}
               {message.senderId === authUser._id && !message.isDeleted && editingMessageId !== message._id && (
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-                  {/* Edit Button */}
                   <button
                     onClick={() => {
                       setEditingMessageId(message._id);
@@ -113,7 +107,6 @@ const ChatContainer = () => {
                   >
                     <Pencil size={13} />
                   </button>
-                  {/* Delete Button */}
                   <button
                     onClick={() => {
                       setMessageToDelete(message._id);
@@ -128,7 +121,6 @@ const ChatContainer = () => {
               )}
             </div>
             
-            {/* Main Interactive Chat Bubble */}
             <div 
               className={`chat-bubble flex flex-col justify-center transition-all duration-100 
                 ${editingMessageId === message._id ? 'bg-base-300 border border-base-content/10 text-base-content max-w-md w-full' : ''}
@@ -142,7 +134,6 @@ const ChatContainer = () => {
                   🚫 Message deleted
                 </span>
               ) : editingMessageId === message._id ? (
-                /* Inline Edit Mode Interface Form Layout */
                 <div className="w-full flex flex-col gap-2 p-1">
                   <textarea
                     value={editText}
@@ -174,7 +165,6 @@ const ChatContainer = () => {
                   </div>
                 </div>
               ) : (
-                /* Default Presentation Flow Mode */
                 <>
                   {message.image && (
                     <img src={message.image} alt='Attachment' className='sm:max-w-[200px] rounded-md mb-2 pointer-events-none' />
@@ -193,7 +183,7 @@ const ChatContainer = () => {
       {/* Mobile Context Bottom Action Sheet Modal */}
       <dialog id="mobile_action_sheet" className="modal modal-bottom sm:hidden">
         <div className="modal-box bg-base-200 p-0 rounded-t-2xl shadow-2xl overflow-hidden">
-          <div className="w-12 h-1 bg-zinc-600/30 rounded-full mx-auto my-3" /> {/* Sheet Drag Handle Indicator */}
+          <div className="w-12 h-1 bg-zinc-600/30 rounded-full mx-auto my-3" />
           <div className="flex flex-col text-sm border-t border-base-300">
             <button 
               onClick={() => {
